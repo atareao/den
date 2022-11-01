@@ -9,3 +9,4 @@ edition = "2021"
 tokio = { version = "1.21", features = ["full"]}
 futures = "0.3"
 shiplift = "0.7"
+openssl = { version = "0.10", features = ["vendored"] }
