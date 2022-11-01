@@ -1,3 +1,5 @@
+mod mattermost;
+
 use futures::StreamExt;
 use shiplift::Docker;
 use tokio::fs;
