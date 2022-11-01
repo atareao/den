@@ -1,8 +1,15 @@
 use futures::StreamExt;
 use shiplift::Docker;
+use tokio::fs;
+use yaml_rust::YamlLoader;
 
 #[tokio::main]
 async fn main() {
+    let content = fs::read_to_string("config.yml")
+        .await
+        .expect("config.yml not found");
+    let configuration = YamlLoader::load_from_str(&content)
+        .expect("Something happened");
     let docker = Docker::new();
     println!("listening for events");
 
