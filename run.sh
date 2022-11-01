@@ -21,6 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-docker run --init --rm -d --name den \
+docker run --init --detach --rm --name den \
            -v /var/run/docker.sock:/var/run/docker.sock \
+           -v "${PWD}"/config.yml:/app/config.yml \
            atareao/den:v0.1.0

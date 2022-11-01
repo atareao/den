@@ -1,0 +1,62 @@
+settings:
+  logging: info ## Log verbosity <debug, info (default), warn, error>
+  tags: ## List of tags you want to appear in notifications for identification purposes
+    - production
+    - example one
+  # exclusions: ## The name of any actors (containers, networks etc) you want to exclude from alerts
+  #   - foo
+  # inclusions: ## If specified, only events from these actors will be alerted on. Any actors not in this list are implicitly excluded, therefore this is mutually exclusive with the above `exclusions` option.
+  #   - foo
+  # silence: ## Time window where alerts will be silenced
+  #   start: "02:00" ## Start of the silence window in 24 hour format
+  #   duration: 120 ## Duration in minutes for the window to last
+  #   exclusions: ## The name of any actors (containers, networks etc) you want to exclude from the silence window
+  #     - foo
+  #   inclusions: ## If specified, only events from these actors will be included in the silence window. Any actors not in this list are implicitly excluded, therefore this is mutually exclusive with the above `exclusions` option.
+  #     - foo
+
+events: ## The Docker event types that you want to trigger alerts for
+  container: 
+    - 'health_status: unhealthy'
+    - oom
+    - destroy
+    - create
+  image: 
+    - delete
+  plugin:
+    - install
+    - remove
+  volume: 
+    - destroy
+    - create
+  network:
+    - destroy
+  daemon:
+    - reload
+  service:
+    - remove
+  node:
+    - remove
+  secret:
+    - remove
+  config:
+    - remove
+
+integrations: ## Available integrations  
+  slack:
+    enabled: False
+    url: https://hooks.slack.com/services/<your_uuid>
+  discord:
+    enabled: False
+    url: https://discordapp.com/api/webhooks/<your_uuid>
+  mattermost:
+    enabled: True
+    url: https://mattermost_url
+    token:
+    channel_id:
+  telegram:
+    enabled: True
+    url: https://api.telegram.org
+    token:
+    channel_id:
+
