@@ -1,5 +1,6 @@
 mod mattermost;
 mod telegram;
+mod config;
 
 use futures::StreamExt;
 use shiplift::{Docker, rep::Event};
@@ -69,5 +70,6 @@ async fn main() {
 }
 
 fn process(event: &Event, configuration: &Vec<Yaml>){
-
+    // if docker_object in monitorized_docker_objects &&
+    //     event in docker_object.events
 }
