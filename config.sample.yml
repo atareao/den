@@ -1,62 +1,77 @@
 settings:
-  logging: info ## Log verbosity <debug, info (default), warn, error>
-  tags: ## List of tags you want to appear in notifications for identification purposes
-    - production
-    - example one
-  # exclusions: ## The name of any actors (containers, networks etc) you want to exclude from alerts
-  #   - foo
-  # inclusions: ## If specified, only events from these actors will be alerted on. Any actors not in this list are implicitly excluded, therefore this is mutually exclusive with the above `exclusions` option.
-  #   - foo
-  # silence: ## Time window where alerts will be silenced
-  #   start: "02:00" ## Start of the silence window in 24 hour format
-  #   duration: 120 ## Duration in minutes for the window to last
-  #   exclusions: ## The name of any actors (containers, networks etc) you want to exclude from the silence window
-  #     - foo
-  #   inclusions: ## If specified, only events from these actors will be included in the silence window. Any actors not in this list are implicitly excluded, therefore this is mutually exclusive with the above `exclusions` option.
-  #     - foo
+  # Log verbosity <debug, info (default), warn, error>
+  logging: info
 
-events: ## The Docker event types that you want to trigger alerts for
+objects:
+  #  https://docs.docker.com/engine/reference/commandline/events/
   container: 
-    - 'health_status: unhealthy'
-    - oom
-    - destroy
-    - create
+    monitorize: true
+    # attach, commit, copy, create, destroy, detach, die, exec_create,
+    # exec_detach, exec_die, exec_start, export, health_status, kill, oom,
+    # pause, rename, resize, restart, start, stop, top, unpause, update
+    events:
+      - 'health_status: unhealthy'
+      - oom
+      - destroy:
+          monitorize: true
+          message: '💥 Destroyed container ${name}'
+      - create
   image: 
-    - delete
+    monitorize: true
+    # delete, import, load, pull, push, save, tag, untag
+    events:
+      - delete
   plugin:
-    - install
-    - remove
+    monitorize: false
+    # enable, disable, install, remove
+    events: []
   volume: 
-    - destroy
-    - create
+    monitorize: true
+    # create, destroy, mount, unmount
+    events:
+      - destroy
+      - create
   network:
-    - destroy
+    monitorize: true
+    # create, connect, destroy, disconnect, remove
+    events:
+      - destroy
   daemon:
-    - reload
+    monitorize: false
+    # reload
+    events: []
   service:
-    - remove
+    monitorize: false
+    # create, remove, update
+    events: []
   node:
-    - remove
+    monitorize: false
+    # create, remove, update
+    events: []
   secret:
-    - remove
+    monitorize: false
+    # create, remove, update
+    events: []
   config:
-    - remove
+    monitorize: false
+    # create, remove, update
+    events: []
 
-integrations: ## Available integrations  
+integrations: ## Available integrations
   slack:
-    enabled: False
-    url: https://hooks.slack.com/services/<your_uuid>
+    enabled: false
+    url:
   discord:
-    enabled: False
-    url: https://discordapp.com/api/webhooks/<your_uuid>
+    enabled: false
+    url:
   mattermost:
-    enabled: True
-    url: https://mattermost_url
+    enabled: false
+    url:
     token:
     channel_id:
   telegram:
-    enabled: True
-    url: https://api.telegram.org
+    enabled: false
+    url:
     token:
     channel_id:
 
