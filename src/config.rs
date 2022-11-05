@@ -1,51 +1,35 @@
-use std::collections::HashMap;
-
 use serde::{Serialize, Deserialize};
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Configuration {
-    settings: Settings,
-    events: Events,
-    integrations: Integrations,
-}
+use serde_yaml::Error;
+use crate::{publisher::Publisher, object::DockerObject};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
-    logging: String,
+    pub logging: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct DockerObject {
-    monitorize: bool,
-    events: Vec<String>,
+pub struct Configuration {
+    pub settings: Settings,
+    pub objects: Vec<DockerObject>,
+    pub publishers: Vec<Publisher>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Events {
-    container: DockerObject,
-    image: DockerObject,
-    plugin: DockerObject,
-    volume: DockerObject,
-    network: DockerObject,
-    daemon: DockerObject,
-    service: DockerObject,
-    node: DockerObject,
-    secret: DockerObject,
-    config: DockerObject,
+impl Configuration {
+    pub fn get_object(&self, name: &str) -> Option<DockerObject>{
+        for docker_object in self.objects.iter(){
+            if docker_object.name == name && docker_object.monitorize{
+                return Some(docker_object.clone());
+            }
+        }
+        None
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Integration {
-    enabled: bool,
-    config: HashMap<String, String>,
+impl Configuration {
+    pub fn new(content: &str) -> Result<Configuration, Error>{
+        serde_yaml::from_str(content)
+    }
+    pub fn get_log_level(&self) -> &str{
+        &self.settings.logging
+    }
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Integrations {
-    slack: Integration,
-    discord: Integration,
-    mattermost: Integration,
-    telegram: Integration,
-}
-
-

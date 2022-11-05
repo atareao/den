@@ -6,25 +6,18 @@ use std::str::FromStr;
 use std::collections::HashMap;
 use anyhow::{Error, anyhow};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Publisher<'a>{
-    service: &'a str,
-    enabled: bool,
-    config: HashMap<&'a str, &'a str>,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Publisher{
+    pub service: String,
+    pub enabled: bool,
+    pub config: HashMap<String, String>,
 }
 
 const MATTERMOST: &str = "mattermost";
 const TELEGRAM: &str = "telegram";
 
 
-impl<'a> Publisher<'a>{
-    pub fn new(enabled: bool, service: &'a str, config: HashMap<&'a str, &'a str>) -> Publisher<'a>{
-        Self{
-            service,
-            enabled,
-            config,
-        }
-    }
+impl Publisher{
 
     pub async fn post_message(&self, message: &str) -> Result<Response, Error>{
         if self.service.to_lowercase() == MATTERMOST{
