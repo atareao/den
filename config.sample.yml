@@ -4,74 +4,88 @@ settings:
 
 objects:
   #  https://docs.docker.com/engine/reference/commandline/events/
-  container: 
+  - name: container
     monitorize: true
     # attach, commit, copy, create, destroy, detach, die, exec_create,
     # exec_detach, exec_die, exec_start, export, health_status, kill, oom,
     # pause, rename, resize, restart, start, stop, top, unpause, update
     events:
-      - 'health_status: unhealthy'
-      - oom
-      - destroy:
-          monitorize: true
-          message: '💥 Destroyed container ${name}'
-      - create
-  image: 
+      - name: 'health_status: unhealthy'
+        message: 🤒 Conainer {{ container }} unhealty
+      - name: destroy
+        message: 💥 Destroyed container {{ container }}
+      - name: stop
+        message: ✋ Stop container {{ container }} for **{{ image }}**
+      - name: start
+        message: 🏁 Start container {{ container }} for **{{ image }}**
+      - name: create
+        message: 🆕 Created container {{ container }} for **{{ image }}**
+      - name: die
+        message: ☠️C Container **{{container}}** died for **{{image}}**
+  - name: image
     monitorize: true
     # delete, import, load, pull, push, save, tag, untag
     events:
-      - delete
-  plugin:
+      - name: delete
+        message: Deleted image
+  - name: plugin
     monitorize: false
     # enable, disable, install, remove
     events: []
-  volume: 
+  - name: volume
     monitorize: true
     # create, destroy, mount, unmount
     events:
-      - destroy
-      - create
-  network:
+      - name: destroy
+        message: Volume destroyed
+      - name: create
+        message: Volume created
+  - name: network
     monitorize: true
     # create, connect, destroy, disconnect, remove
     events:
-      - destroy
-  daemon:
+      - name: destroy
+        message: 💥 Destroyed network **{{ network }}**
+  - name: daemon
     monitorize: false
     # reload
     events: []
-  service:
+  - name: service
     monitorize: false
     # create, remove, update
     events: []
-  node:
+  - name: node
     monitorize: false
     # create, remove, update
     events: []
-  secret:
+  - name: secret
     monitorize: false
     # create, remove, update
     events: []
-  config:
+  - name: config
     monitorize: false
     # create, remove, update
     events: []
 
-integrations: ## Available integrations
-  slack:
+publishers: ## Available publishers
+  - service: slack
     enabled: false
-    url:
-  discord:
+    config:
+      url: https://hooks.slack.com/services/<your_uuid>
+  - service: discord
     enabled: false
-    url:
-  mattermost:
+    config:
+      url: https://discordapp.com/api/webhooks/<your_uuid>
+  - service: mattermost
     enabled: false
-    url:
-    token:
-    channel_id:
-  telegram:
+    config:
+      url: https://mattermost.tuservidor.es
+      token: 
+      channel_id: 
+  - service: telegram
     enabled: false
-    url:
-    token:
-    channel_id:
+    config:
+      url: https://api.telegram.org
+      token:
+      chat_id:
 
