@@ -1,5 +1,5 @@
-mod mattermost;
-mod telegram;
+mod object;
+mod publisher;
 mod config;
 
 use futures::StreamExt;
