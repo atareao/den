@@ -88,4 +88,3 @@ publishers: ## Available publishers
       url: https://api.telegram.org
       token:
       chat_id:
-

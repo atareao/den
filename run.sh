@@ -22,6 +22,7 @@
 # SOFTWARE.
 
 docker run --init --detach --rm --name den \
+           -e HOST_HOSTNAME="$(hostname)" \
            -v /var/run/docker.sock:/var/run/docker.sock \
            -v "${PWD}"/config.yml:/app/config.yml \
            atareao/den:v0.1.0

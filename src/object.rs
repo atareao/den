@@ -1,3 +1,5 @@
+use chrono::Local;
+
 use serde::{Serialize, Deserialize};
 use shiplift::rep::Event;
 use tera::{Tera, Context};
@@ -24,8 +26,12 @@ impl DockerObject {
         }
         None
     }
-    pub fn parse(&self, docker_event: &DockerEvent, event: &Event) -> String{
+    pub fn parse(&self, docker_event: &DockerEvent, event: &Event,
+            hostname: &str) -> String{
         let mut context = Context::new();
+        context.insert("hostname", hostname);
+        let timestamp = Local::now().timestamp();
+        context.insert("now", &timestamp);
         if self.name == "container"{
             context.insert("id", &event.actor.id);
             context.insert("container",
@@ -36,6 +42,11 @@ impl DockerObject {
             context.insert("id", &event.actor.id);
             context.insert("network",
                        event.actor.attributes.get("name").unwrap());
+            context.insert("type",
+                       event.actor.attributes.get("type").unwrap());
+        }else if self.name == "volume"{
+            context.insert("id", &event.actor.id);
+            context.insert("volume", &event.actor.id);
             context.insert("type",
                        event.actor.attributes.get("type").unwrap());
         }

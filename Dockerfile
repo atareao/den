@@ -1,7 +1,7 @@
 ###############################################################################
 ## Builder
 ###############################################################################
-FROM rust:latest AS builder
+FROM rust:1.64 AS builder
 
 LABEL maintainer="Lorenzo Carbonell <a.k.a. atareao> lorenzo.carbonell.cerezo@gmail.com"
 
@@ -37,7 +37,7 @@ FROM alpine:3.16
 
 RUN apk add --update --no-cache \
             su-exec~=0.2 \
-            tzdata~=2022c && \
+            tzdata~=2022 && \
     rm -rf /var/cache/apk && \
     rm -rf /var/lib/app/lists*
 # Copy the user

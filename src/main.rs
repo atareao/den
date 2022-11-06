@@ -25,6 +25,10 @@ async fn main() {
         };
     let configuration = Configuration::new(&content)
         .expect("Someting went wrong");
+    let hostname = match std::env::var("HOST_HOSTNAME"){
+        Ok(value) => value,
+        Err(_) => gethostname::gethostname().to_str().unwrap().to_string(),
+    };
     info!("Configuration loaded");
     Builder::new()
         .filter_level(match configuration.get_log_level(){
@@ -48,8 +52,9 @@ async fn main() {
         loop{
             match receiver.recv().await{
                 Some(event) => {
+                    info!("{:?}", hostname);
                     info!("{:?}", event);
-                    process(&event, &configuration).await;
+                    process(&event, &configuration, &hostname).await;
                 },
                 None => error!(""),
             }
@@ -68,7 +73,7 @@ async fn main() {
     }
 }
 
-async fn process(event: &Event, config: &Configuration){
+async fn process(event: &Event, config: &Configuration, hostname: &str){
     // if docker_object in monitorized_docker_objects &&
     //     event in docker_object.events
     info!("event => {:?}", event);
@@ -76,7 +81,8 @@ async fn process(event: &Event, config: &Configuration){
         Some(docker_object) => {
             match docker_object.get_event(&event.action) {
                 Some(docker_event) => {
-                    let message = docker_object.parse(&docker_event, event);
+                    let message = docker_object.parse(
+                        &docker_event, event, hostname);
                     info!("============================");
                     info!("Object: {}", docker_object.name);
                     info!("Event: {}", docker_event.name);
@@ -89,24 +95,6 @@ async fn process(event: &Event, config: &Configuration){
                             };
                         }
                     }
-                    /*
-                    config.publishers.iter().for_each(closure!(clone publisher, ||{
-                        //tokio::spawn(async {
-                        //    match publisher.post_message(&message).await{
-                        //        Ok(response) => info!("Send: {:?}", response),
-                        //        Err(e) => error!("Error in sending: {:?}", e),
-                        //    }
-                        //});
-                    }));
-                    for publisher in config.publishers.iter_mut(){
-                        tokio::spawn(async move {
-                            match publisher.post_message(&message_to).await{
-                                Ok(response) => info!("Send: {:?}", response),
-                                Err(e) => error!("Error in sending: {:?}", e),
-                            }
-                        });
-                    }
-                    */
                 },
                 None => {},
             }
