@@ -47,8 +47,8 @@ impl DockerObject {
         }else if self.name == "volume"{
             context.insert("id", &event.actor.id);
             context.insert("volume", &event.actor.id);
-            context.insert("type",
-                       event.actor.attributes.get("type").unwrap());
+            context.insert("driver",
+                       event.actor.attributes.get("driver").unwrap());
         }
         process_message(&docker_event.message, &context)
     }
