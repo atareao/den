@@ -10,7 +10,6 @@ tokio = { version = "1.21", features = ["full"]}
 futures = "0.3"
 shiplift = "0.7"
 openssl = { version = "0.10", features = ["vendored"] }
-yaml-rust = "0.4"
 reqwest = {version = "0.11", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
