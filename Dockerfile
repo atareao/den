@@ -1,7 +1,7 @@
 ###############################################################################
 ## Builder
 ###############################################################################
-FROM rust:1.64 AS builder
+FROM rust:1.70 AS builder
 
 LABEL maintainer="Lorenzo Carbonell <a.k.a. atareao> lorenzo.carbonell.cerezo@gmail.com"
 
@@ -26,28 +26,42 @@ RUN rustup target add x86_64-unknown-linux-musl && \
 
 WORKDIR /app
 
-COPY ./ .
+COPY Cargo.toml Cargo.lock ./
+COPY src src
 
-RUN cargo build  --target x86_64-unknown-linux-musl --release
+RUN cargo build --release --target x86_64-unknown-linux-musl && \
+    cp /app/target/x86_64-unknown-linux-musl/release/den /app/den
 
 ###############################################################################
 ## Final image
 ###############################################################################
-FROM alpine:3.16
+FROM alpine:3.18
+
+ENV USER=app
+ENV UID=10001
 
 RUN apk add --update --no-cache \
-            su-exec~=0.2 \
-            tzdata~=2022 && \
+            tzdata~=2023 && \
     rm -rf /var/cache/apk && \
     rm -rf /var/lib/app/lists*
-# Copy the user
+
+# Copy our build
+COPY --from=builder /app/den /app/
+
+## Create the user
+#RUN adduser \
+#    --disabled-password \
+#    --gecos "" \
+#    --home "/${USER}" \
+#    --shell "/sbin/nologin" \
+#    --uid "${UID}" \
+#    "${USER}" && \
+#    chmod 700 /app/den && \
+#    chown -R app:app /app
+
 
 # Set the work dir
 WORKDIR /app
+#USER app
 
-COPY entrypoint.sh /app/
-# Copy our build
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/den /app/
-
-ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
 CMD ["/app/den"]
