@@ -2,9 +2,12 @@ use serde_json::{json, Value};
 use serde::{Serialize, Deserialize};
 use reqwest::{Client, Response, header::{HeaderMap, HeaderValue,
     HeaderName}};
+use shiplift::rep::Event;
 use std::str::FromStr;
 use std::collections::HashMap;
 use anyhow::{Error, anyhow};
+use log::{error, debug, info};
+use crate::object::{DockerObject, DockerEvent};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Publisher{
@@ -15,6 +18,7 @@ pub struct Publisher{
 
 const MATTERMOST: &str = "mattermost";
 const TELEGRAM: &str = "telegram";
+const ZINC: &str = "zinc";
 
 
 impl Publisher{
@@ -24,12 +28,38 @@ impl Publisher{
             return Ok(self.post_with_mattermost(message).await?);
         }else if self.service.to_lowercase() == TELEGRAM{
             return Ok(self.post_with_telegram(message).await?);
+        }else if self.service.to_lowercase() == ZINC{
+            return Ok(self.post_with_zinc(message).await?);
         }else{
+            error!("Publisher not defined: {}", self.service);
             Err(anyhow!("Publisher not defined: {}", self.service))
         }
     }
 
+    async fn post_with_zinc(&self, message: &str) -> Result<Response, reqwest::Error>{
+        debug!("Post with zinc: {}", message);
+        let base_url = self.config.get("url").unwrap();
+        let index = self.config.get("index").unwrap();
+        let token = self.config.get("token").unwrap();
+        let url = format!("{}/api/default/{}/_json", base_url, index);
+        info!("Url: {}", url);
+        info!("Message: {}", message);
+        let mut header_map = HeaderMap::new();
+        header_map.append(HeaderName::from_str("Content-type").unwrap(),
+                          HeaderValue::from_str("application/json").unwrap());
+        header_map.append(HeaderName::from_str("Accept").unwrap(),
+                          HeaderValue::from_str("application/json").unwrap());
+        header_map.append(HeaderName::from_str("Authorization").unwrap(),
+                          HeaderValue::from_str(&format!("Basic {}", token)).unwrap());
+        info!("header_map: {:?}", &header_map);
+        let body = json!([{
+            "message": message,
+        }]);
+        Self::post(&url, header_map, &body).await
+    }
+
     async fn post_with_telegram(&self, message: &str) -> Result<Response, reqwest::Error>{
+        debug!("Post with telegram: {}", message);
         let token = self.config.get("token").unwrap();
         let chat_id = self.config.get("chat_id").unwrap();
         let url = format!("https://api.telegram.org/bot{}/sendMessage", token);
@@ -44,7 +74,8 @@ impl Publisher{
     }
 
 
-    async fn post_with_mattermost(&self, message: &str)->Result<Response, reqwest::Error>{
+    async fn post_with_mattermost(&self, message: &str) -> Result<Response, reqwest::Error>{
+        debug!("Post with mattermost: {}", message);
         let url = format!("{}/api/v4/posts", self.config.get("url").unwrap());
         let token = self.config.get("token").unwrap();
         let channel_id = self.config.get("channel_id").unwrap();

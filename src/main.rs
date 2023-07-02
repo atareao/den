@@ -5,7 +5,7 @@ mod config;
 use futures::StreamExt;
 use shiplift::{Docker, rep::Event};
 use tokio::fs;
-use log::{error, info};
+use log::{error, debug, info};
 use env_logger::Builder;
 use std::process;
 use config::Configuration;
@@ -29,7 +29,7 @@ async fn main() {
         Ok(value) => value,
         Err(_) => gethostname::gethostname().to_str().unwrap().to_string(),
     };
-    info!("Configuration loaded");
+    debug!("Configuration loaded");
     Builder::new()
         .filter_level(match configuration.get_log_level(){
             "trace" => log::LevelFilter::Trace,
@@ -43,7 +43,7 @@ async fn main() {
         .init();
 
 
-    info!("listening for events");
+    debug!("listening for events");
 
     //let (sender, receiver): (Sender<Event>, Receiver<Event>) = unbounded();
     let (sender, mut receiver): (UnboundedSender<Event>, UnboundedReceiver<Event>) = unbounded_channel();
@@ -52,8 +52,8 @@ async fn main() {
         loop{
             match receiver.recv().await{
                 Some(event) => {
-                    info!("{:?}", hostname);
-                    info!("{:?}", event);
+                    debug!("{:?}", hostname);
+                    debug!("{:?}", event);
                     process(&event, &configuration, &hostname).await;
                 },
                 None => error!(""),
@@ -65,7 +65,7 @@ async fn main() {
     while let Some(event_result) = docker.events(&Default::default()).next().await {
         match event_result {
             Ok(event) => {
-                info!("event -> {:?}", event);
+                debug!("event -> {:?}", event);
                 sender.send(event).unwrap()
             },
             Err(e) => error!("Error: {}", e),
@@ -76,17 +76,17 @@ async fn main() {
 async fn process(event: &Event, config: &Configuration, hostname: &str){
     // if docker_object in monitorized_docker_objects &&
     //     event in docker_object.events
-    info!("event => {:?}", event);
+    debug!("event => {:?}", event);
     match config.get_object(&event.typ){
         Some(docker_object) => {
             match docker_object.get_event(&event.action) {
                 Some(docker_event) => {
                     let message = docker_object.parse(
                         &docker_event, event, hostname);
-                    info!("============================");
-                    info!("Object: {}", docker_object.name);
-                    info!("Event: {}", docker_event.name);
-                    info!("Message: {}", &message);
+                    debug!("============================");
+                    debug!("Object: {}", docker_object.name);
+                    debug!("Event: {}", docker_event.name);
+                    debug!("Message: {}", &message);
                     for publisher in config.publishers.iter(){
                         if publisher.enabled{
                             match publisher.post_message(&message).await{

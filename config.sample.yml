@@ -68,6 +68,11 @@ objects:
     events: []
 
 publishers: ## Available publishers
+  - service: zinc
+    config:
+      url: https://zinc.tusition.es
+      index: docker
+      token: XXXXXXXXXXXXXXXXXXXXXXX
   - service: slack
     enabled: false
     config:
