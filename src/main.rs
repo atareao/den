@@ -25,9 +25,9 @@ async fn main() {
         };
     let configuration = Configuration::new(&content)
         .expect("Someting went wrong");
-    let hostname = match std::env::var("HOST_HOSTNAME"){
-        Ok(value) => value,
-        Err(_) => gethostname::gethostname().to_str().unwrap().to_string(),
+    let hostname = match gethostname::gethostname().to_str() {
+        Some(value) => value.to_owned(),
+        None => "".to_owned(),
     };
     debug!("Configuration loaded");
     Builder::new()
@@ -46,34 +46,37 @@ async fn main() {
     debug!("listening for events");
 
     //let (sender, receiver): (Sender<Event>, Receiver<Event>) = unbounded();
-    let (sender, mut receiver): (UnboundedSender<Event>, UnboundedReceiver<Event>) = unbounded_channel();
+    //let (sender, mut receiver): (UnboundedSender<Event>, UnboundedReceiver<Event>) = unbounded_channel();
 
-    tokio::spawn(async move {
-        loop{
-            match receiver.recv().await{
-                Some(event) => {
-                    debug!("{:?}", hostname);
-                    debug!("{:?}", event);
-                    process(&event, &configuration, &hostname).await;
-                },
-                None => error!(""),
-            }
-        }
-    });
+    //tokio::spawn(async move {
+    //    loop{
+    //        match receiver.recv().await{
+    //            Some(event) => {
+    //                debug!("{:?}", &hostname);
+    //                debug!("{:?}", event);
+    //                process(event, &configuration, "").await;
+    //            },
+    //            None => error!(""),
+    //        }
+    //    }
+    //});
     let docker = Docker::new();
+    debug!("Start");
 
     while let Some(event_result) = docker.events(&Default::default()).next().await {
         match event_result {
             Ok(event) => {
                 debug!("event -> {:?}", event);
-                sender.send(event).unwrap()
+                //sender.send(event).unwrap()
+                process(event, &configuration, &hostname).await;
             },
             Err(e) => error!("Error: {}", e),
         };
     }
+    debug!("End");
 }
 
-async fn process(event: &Event, config: &Configuration, hostname: &str){
+async fn process(event: Event, config: &Configuration, hostname: &str){
     // if docker_object in monitorized_docker_objects &&
     //     event in docker_object.events
     debug!("event => {:?}", event);
@@ -81,20 +84,25 @@ async fn process(event: &Event, config: &Configuration, hostname: &str){
         Some(docker_object) => {
             match docker_object.get_event(&event.action) {
                 Some(docker_event) => {
-                    let message = docker_object.parse(
-                        &docker_event, event, hostname);
-                    debug!("============================");
-                    debug!("Object: {}", docker_object.name);
-                    debug!("Event: {}", docker_event.name);
-                    debug!("Message: {}", &message);
-                    for publisher in config.publishers.iter(){
-                        if publisher.enabled{
-                            match publisher.post_message(&message).await{
-                                Ok(response) => info!("Send: {:?}", response),
-                                Err(e) => error!("Error in sending: {:?}", e),
-                            };
-                        }
-                    }
+                    match docker_object.parse(&docker_event, event, hostname) {
+                        Ok(message) => {
+                            debug!("============================");
+                            debug!("Object: {}", docker_object.name);
+                            debug!("Event: {}", docker_event.name);
+                            debug!("Message: {}", &message);
+                            for publisher in config.publishers.iter(){
+                                if publisher.enabled{
+                                    match publisher.post_message(&message).await{
+                                        Ok(response) => info!("Send: {:?}", response),
+                                        Err(e) => error!("Error in sending: {:?}", e),
+                                    };
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            debug!("Error: {}", &e);
+                        },
+                    };
                 },
                 None => {},
             }
