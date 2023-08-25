@@ -6,11 +6,12 @@ use futures::StreamExt;
 use shiplift::{Docker, rep::Event};
 use tokio::fs;
 use log::{error, debug, info};
-use env_logger::Builder;
+use env_logger::{
+    Builder,
+    Env
+};
 use std::process;
 use config::Configuration;
-//use crossbeam::channel::{unbounded, Receiver, Sender};
-use tokio::sync::mpsc::{unbounded_channel, UnboundedSender, UnboundedReceiver};
 
 #[tokio::main]
 async fn main() {
@@ -29,56 +30,26 @@ async fn main() {
         Some(value) => value.to_owned(),
         None => "".to_owned(),
     };
-    debug!("Configuration loaded");
-    Builder::new()
-        .filter_level(match configuration.get_log_level(){
-            "trace" => log::LevelFilter::Trace,
-            "debug" => log::LevelFilter::Debug,
-            "info" => log::LevelFilter::Info,
-            "warn" => log::LevelFilter::Warn,
-            "error" => log::LevelFilter::Error,
-            _ => log::LevelFilter::Off,
-        })
-        .parse_default_env()
-        .init();
+    Builder::from_env(
+        Env::default()
+            .default_filter_or(configuration.get_log_level())).init();
+    info!("Configuration loaded");
 
-
-    debug!("listening for events");
-
-    //let (sender, receiver): (Sender<Event>, Receiver<Event>) = unbounded();
-    //let (sender, mut receiver): (UnboundedSender<Event>, UnboundedReceiver<Event>) = unbounded_channel();
-
-    //tokio::spawn(async move {
-    //    loop{
-    //        match receiver.recv().await{
-    //            Some(event) => {
-    //                debug!("{:?}", &hostname);
-    //                debug!("{:?}", event);
-    //                process(event, &configuration, "").await;
-    //            },
-    //            None => error!(""),
-    //        }
-    //    }
-    //});
     let docker = Docker::new();
-    debug!("Start");
+    info!("Start listening for events");
 
     while let Some(event_result) = docker.events(&Default::default()).next().await {
         match event_result {
             Ok(event) => {
-                debug!("event -> {:?}", event);
-                //sender.send(event).unwrap()
                 process(event, &configuration, &hostname).await;
             },
             Err(e) => error!("Error: {}", e),
         };
     }
-    debug!("End");
+    info!("End listening for events");
 }
 
 async fn process(event: Event, config: &Configuration, hostname: &str){
-    // if docker_object in monitorized_docker_objects &&
-    //     event in docker_object.events
     debug!("event => {:?}", event);
     match config.get_object(&event.typ){
         Some(docker_object) => {
