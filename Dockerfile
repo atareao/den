@@ -1,7 +1,7 @@
 ###############################################################################
 ## Builder
 ###############################################################################
-FROM rust:1.70 AS builder
+FROM rust:1.71 AS builder
 
 LABEL maintainer="Lorenzo Carbonell <a.k.a. atareao> lorenzo.carbonell.cerezo@gmail.com"
 
@@ -47,18 +47,6 @@ RUN apk add --update --no-cache \
 
 # Copy our build
 COPY --from=builder /app/den /app/
-
-## Create the user
-#RUN adduser \
-#    --disabled-password \
-#    --gecos "" \
-#    --home "/${USER}" \
-#    --shell "/sbin/nologin" \
-#    --uid "${UID}" \
-#    "${USER}" && \
-#    chmod 700 /app/den && \
-#    chown -R app:app /app
-
 
 # Set the work dir
 WORKDIR /app
