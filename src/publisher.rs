@@ -2,12 +2,10 @@ use serde_json::{json, Value};
 use serde::{Serialize, Deserialize};
 use reqwest::{Client, Response, header::{HeaderMap, HeaderValue,
     HeaderName}};
-use shiplift::rep::Event;
 use std::str::FromStr;
 use std::collections::HashMap;
 use anyhow::{Error, anyhow};
 use log::{error, debug, info};
-use crate::object::{DockerObject, DockerEvent};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Publisher{
