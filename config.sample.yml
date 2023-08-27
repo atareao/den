@@ -1,6 +1,6 @@
 settings:
   # Log verbosity <debug, info (default), warn, error>
-  logging: info
+  logging: debug
 
 objects:
   #  https://docs.docker.com/engine/reference/commandline/events/
@@ -11,17 +11,41 @@ objects:
     # pause, rename, resize, restart, start, stop, top, unpause, update
     events:
       - name: 'health_status: unhealthy'
-        message: 🤒 Conainer {{ container }} unhealty
+        message: "📦🤒 Container unhealty
+            DateTime: {{ timestamp|datetimeformat(format='iso') }}\n
+            Hostname: {{hostname}}\n
+            Container: {{container}}\n
+            Image: {{image}}"
       - name: destroy
-        message: 💥 Destroyed container {{ container }}
+        message: "📦💥 Destroyed container\n
+            DateTime: {{ timestamp|datetimeformat(format='iso') }}\n
+            Hostname: {{hostname}}\n
+            Container: {{container}}\n
+            Image: {{image}}"
       - name: stop
-        message: ✋ Stop container {{ container }} for **{{ image }}**
+        message: "📦✋ Stopped container
+            DateTime: {{ timestamp|datetimeformat(format='iso') }}\n
+            Hostname: **{{hostname}}**\n
+            Container: **{{container}}**\n
+            Image: **{{image}}**"
       - name: start
-        message: 🏁 Start container {{ container }} for **{{ image }}**
+        message: "📦🏁 Started container\n
+            DateTime: {{ timestamp|datetimeformat(format='iso') }}\n
+            Hostname: **{{hostname}}**\n
+            Container: **{{container}}**\n
+            Image: **{{image}}**"
       - name: create
-        message: 🆕 Created container {{ container }} for **{{ image }}**
+        message: "### 📦🆕 Created container\n
+            * DateTime: {{ timestamp|datetimeformat(format='iso') }}\n
+            * Hostname: **{{hostname}}**\n
+            * Container: **{{container}}**\n
+            * Image: **{{image}}**"
       - name: die
-        message: ☠️C Container **{{container}}** died for **{{image}}**
+        message: "📦☠️  Died container\n
+            DateTime: {{ timestamp|datetimeformat(format='iso') }}\n
+            Hostname: {{hostname}}\n
+            Container: {{container}}\n
+            Image: {{image}}"
   - name: image
     monitorize: true
     # delete, import, load, pull, push, save, tag, untag
@@ -37,15 +61,24 @@ objects:
     # create, destroy, mount, unmount
     events:
       - name: destroy
-        message: Volume destroyed
+        message: "🥃💥 Volume destroyed
+            DateTime: {{ timestamp|datetimeformat(format='iso') }}\n
+            Hostname: {{hostname}}\n
+            Volume: {{volume}}"
       - name: create
-        message: Volume created
+        message: "🥃🆕 Volume created \n
+            DateTime: {{now | date(format='%H:%M:%S %d-%m-%Y', timezone='Europe/Madrid')}}\n
+            Hostname: {{hostname}}\n
+            Volume: {{volume}}"
   - name: network
     monitorize: true
     # create, connect, destroy, disconnect, remove
     events:
       - name: destroy
-        message: 💥 Destroyed network **{{ network }}**
+        message: "🕸️💥 Network destroyed\n
+            DateTime: {{ timestamp|datetimeformat(format='iso') }}\n
+            Hostname: {{hostname}}\n
+            Network: {{network}}"
   - name: daemon
     monitorize: false
     # reload
@@ -68,11 +101,6 @@ objects:
     events: []
 
 publishers: ## Available publishers
-  - service: zinc
-    config:
-      url: https://zinc.tusition.es
-      index: docker
-      token: XXXXXXXXXXXXXXXXXXXXXXX
   - service: slack
     enabled: false
     config:
@@ -84,12 +112,40 @@ publishers: ## Available publishers
   - service: mattermost
     enabled: false
     config:
-      url: https://mattermost.tuservidor.es
-      token: 
-      channel_id: 
+      url: https://mm.tusitio.como
+      token: xxxxxxxxxxxxxxxxxxxx
+      channel_id: xxxxxxxxxxxxxxxxxxx
   - service: telegram
     enabled: false
     config:
       url: https://api.telegram.org
       token:
       chat_id:
+  - service: zinc
+    enabled: true
+    config:
+      url: https://zincobserve.tusitio.como
+      token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      index: docker
+  - service: matrix
+    enabled: false
+    config:
+      url: matrix.tusitio.como
+      token: xxxxxxxxxxxxxxxxxxxxxxxxxxx
+      room: "!xxxxxxxxxxxxxxxxxxxxxxxx"
+  - service: mosquitto
+    enabled: true
+    config:
+      user: guest
+      password: guest
+      host: localhost
+      port: 1883
+      topic: bonzo/dog
+  - service: rabbitmq
+    enabled: false
+    config:
+      user: guest
+      password: guest
+      host: localhost
+      port: 5672
+      queue: docker
