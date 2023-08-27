@@ -175,7 +175,24 @@ publishers: ## Available publishers
       password: guest
       host: localhost
       port: 5672
-      queue: docker
+      [[queue|queue]]: docker
 ```
 
+### Docker compose
 
+If you want to use DEN with Docker Compose, this is an example,
+
+```bash
+version: "3.7"
+
+services:
+  den:
+    image: atareao/den:latest
+    container_name: den
+    init: true
+    restart: unless-stopped
+    hostname: co1
+    volumes:
+      - ./config.yml:/app/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+```
