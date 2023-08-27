@@ -2,6 +2,7 @@ mod object;
 mod publisher;
 mod config;
 mod filters;
+mod error;
 
 use futures::StreamExt;
 use shiplift::{Docker, rep::Event};
