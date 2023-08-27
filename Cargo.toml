@@ -21,5 +21,4 @@ minijinja = "1.0.6"
 time = { version = "0.3.27", features = ["serde", "formatting", "parsing"] }
 openssl = { version = "0.10", features = ["vendored"] }
 urlencoding = "2.1"
-uuid = { version = "1.4.1", features = ["v4", "fast-rng"] }
 markdown = "0.3.0"

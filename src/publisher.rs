@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use anyhow::{Error, anyhow};
 use log::{error, debug, info};
 use urlencoding::encode;
-use uuid::Uuid;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Publisher{
@@ -81,8 +81,9 @@ impl Publisher{
         let token = self.config.get("token").unwrap();
         let room = encode(self.config.get("room").unwrap());
         let base_url = self.config.get("url").unwrap();
-        let uuid = Uuid::new_v4().to_string();
-        let url = format!("https://{}/_matrix/client/v3/rooms/{}:{}/send/m.room.message/{}", base_url, room, base_url, uuid);
+        let now = SystemTime::now();
+        let ts = now.duration_since(UNIX_EPOCH).expect("Time went backwrds").as_secs();
+        let url = format!("https://{}/_matrix/client/v3/rooms/{}:{}/send/m.room.message/{}", base_url, room, base_url, ts);
         let mut html = markdown::to_html(message);
         html = html[..html.len()-1].to_string();
         let body = json!({
