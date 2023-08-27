@@ -83,9 +83,13 @@ impl Publisher{
         let base_url = self.config.get("url").unwrap();
         let uuid = Uuid::new_v4().to_string();
         let url = format!("https://{}/_matrix/client/v3/rooms/{}:{}/send/m.room.message/{}", base_url, room, base_url, uuid);
+        let mut html = markdown::to_html(message);
+        html = html[..html.len()-1].to_string();
         let body = json!({
-                "body": message,
-                "msgtype": "m.text",
+            "msgtype": "m.text",
+            "format": "org.matrix.custom.html",
+            "body": message,
+            "formatted_body": html
         });
         let mut header_map = HeaderMap::new();
         header_map.insert(HeaderName::from_str("Content-type").unwrap(),
