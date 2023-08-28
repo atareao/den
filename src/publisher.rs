@@ -14,7 +14,7 @@ use mqtt_async_client::client::{
     Client as MQTTClient,
     Publish as PublishOpts,
     KeepAlive,
-    QoS::ExactlyOnce
+    QoS::AtLeastOnce
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -44,9 +44,9 @@ impl Publisher{
         }else if self.service.to_lowercase() == MATRIX {
             return Ok(self.post_with_matrix(message).await?);
         }else if self.service.to_lowercase() == MOSQUITTO {
-            //return Ok(self.post_with_mqtt(message).await?);
-            error!("Publisher not implementd right now: {}", self.service);
-            Err(CustomError::new(format!("Publisher not implementd right now: {}", self.service)))
+            return Ok(self.post_with_mqtt(message).await?);
+            //error!("Publisher not implementd right now: {}", self.service);
+            //Err(CustomError::new(format!("Publisher not implementd right now: {}", self.service)))
         }else if self.service.to_lowercase() == RABBITMQ {
             return Ok(self.post_with_rabbitmq(message).await?);
         }else{
@@ -100,7 +100,10 @@ impl Publisher{
             Some(username) => Some(username.to_string()),
             None => None,
         };
-        let password = self.config.get("password").unwrap();
+        let password = match self.config.get("password") {
+            Some(password) => Some(password.to_string().as_bytes().to_vec()),
+            None => None,
+        };
         let host = self.config.get("host").unwrap();
         let port = self.config.get("port").unwrap();
         let topic = self.config.get("topic").unwrap();
@@ -112,7 +115,7 @@ impl Publisher{
                 CustomError::new(err.to_string())
             })?
             .set_username(user)
-            .set_password(Some(password.clone().into_bytes()))
+            .set_password(password)
             .set_client_id(Some(client_id))
             .set_connect_retry_delay(Duration::from_secs(1))
             .set_keep_alive(KeepAlive::from_secs(1))
@@ -129,8 +132,8 @@ impl Publisher{
             })?;
         let mut p = PublishOpts::new(
             topic.clone(), 
-            message.as_bytes().to_vec());
-        p.set_qos(ExactlyOnce);
+            message.to_string().as_bytes().to_vec());
+        p.set_qos(AtLeastOnce);
         p.set_retain(true);
         client.publish(&p)
             .await
