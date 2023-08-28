@@ -139,7 +139,7 @@ publishers: ## Available publishers
       token: xxxxxxxxxxxxxxxxxxxxxxxxxxx
       room: "!xxxxxxxxxxxxxxxxxxxxxxxx"
   - service: mosquitto
-    enabled: true
+    enabled: false
     config:
       user: guest
       password: guest
