@@ -10,15 +10,19 @@ A very simple app in a Docker to notificate docker events with some Messaging se
 * ZincObeserve
 * Matrix
 * Rabbitmq
-* In next version: *Mosquitto*
+* Mosquitto
 
 ### Avoid container monitoring
 
-If you want avoid to monitor one container add a label, `es.atareao.den.monitorize=true`. For example,
+if `monitorize_always=true` all container are monitorized except has those who has the label `es.atareao.den.monitorize=false`. But if `monitorize_always=false` only container with the label `es.atareao.den.monitorize=true` will be monitorized.
+
+So if you set `es.atareao.den.monitorize=false` the container never will be monitorized, also if `monitorize_always=true`
 
 ```bash
 docker run --label es.atareao.den.monitorize=false --rm hello-world
 ```
+
+If you want, only some contaniers will be monitorized, you mast set `monitorize_always=false`, and set `es.atareao.den.monitorize=true`, in those containers you want monitorize.
 
 By the moment, only container have this attribute. I think in next version I can implement this feature for other Docker objects.
 
@@ -28,6 +32,11 @@ By the moment, only container have this attribute. I think in next version I can
 settings:
   # Log verbosity <debug, info (default), warn, error>
   logging: debug
+  # if `monitorize_always=true` all container are monitorized except has the
+  # label `es.atareao.den.monitorize=false`
+  # if `monitorize_always=false` only container with the following label
+  # `es.atareao.den.monitorize=true` will be monitorized
+  monitorize_always: true
 
 objects:
   #  https://docs.docker.com/engine/reference/commandline/events/
@@ -175,7 +184,7 @@ publishers: ## Available publishers
       password: guest
       host: localhost
       port: 5672
-      [[queue|queue]]: docker
+      queue: docker
 ```
 
 ### Docker compose
