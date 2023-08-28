@@ -1,0 +1,12 @@
+version: "3.7"
+
+services:
+  den:
+    image: atareao/den:latest
+    container_name: den
+    init: true
+    restart: unless-stopped
+    hostname: archi
+    volumes:
+      - ./config.yml:/app/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock
