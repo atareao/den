@@ -53,11 +53,16 @@ async fn main() {
 
 async fn process(event: Event, config: &Configuration, hostname: &str){
     debug!("event => {:?}", event);
+    let monitorize = match event.actor.attributes.get("es.atareao.den.monitorize"){
+            Some(value) => value == "true",
+            None => config.is_monitorize_always(),
+    };
     match config.get_object(&event.typ){
         Some(docker_object) => {
             match docker_object.get_event(&event.action) {
                 Some(docker_event) => {
-                    match docker_object.parse(&docker_event, event, hostname) {
+                    match docker_object.parse(&docker_event, event, hostname,
+                            monitorize) {
                         Ok(message) => {
                             debug!("============================");
                             debug!("Object: {}", docker_object.name);

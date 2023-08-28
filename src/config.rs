@@ -5,6 +5,7 @@ use crate::{publisher::Publisher, object::DockerObject};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
     pub logging: String,
+    pub monitorize_always: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -31,5 +32,8 @@ impl Configuration {
     }
     pub fn get_log_level(&self) -> &str{
         &self.settings.logging
+    }
+    pub fn is_monitorize_always(&self) -> bool{
+        self.settings.monitorize_always
     }
 }

@@ -30,7 +30,7 @@ impl DockerObject {
         None
     }
     pub fn parse(&self, docker_event: &DockerEvent, event: Event,
-            hostname: &str) -> Result<String, minijinja::Error>{
+            hostname: &str, monitorize: bool) -> Result<String, minijinja::Error>{
         let mut env = Environment::new();
         env.add_filter("datetimeformat", filters::datetimeformat);
         let template = env.template_from_str(&docker_event.message).unwrap();
@@ -39,10 +39,6 @@ impl DockerObject {
         let name = match event.actor.attributes.get("name"){
             Some(name) => name.clone(),
             None => event.actor.id.clone(),
-        };
-        let monitorize = match event.actor.attributes.get("es.atareao.den.monitorize"){
-            Some(value) => value == "true",
-            None => true,
         };
         if self.name == "container" && monitorize{
             let ctx = context! {
