@@ -6,6 +6,11 @@ use crate::{publisher::Publisher, object::DockerObject};
 pub struct Settings {
     pub logging: String,
     pub monitorize_always: bool,
+    #[serde(default = "get_default_docker_uri")]
+    docker_uri: String,
+}
+fn get_default_docker_uri() -> String{
+    String::from("/var/run/docker.sock")
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -23,6 +28,9 @@ impl Configuration {
             }
         }
         None
+    }
+    pub fn get_docker_uri(&self) -> &str{
+        &self.settings.docker_uri
     }
 }
 

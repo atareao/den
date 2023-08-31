@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use shiplift::rep::Event;
+use docker_api::models::EventMessage;
 use minijinja::{
     Environment,
     context,
@@ -29,42 +29,43 @@ impl DockerObject {
         }
         None
     }
-    pub fn parse(&self, docker_event: &DockerEvent, event: Event,
+    pub fn parse(&self, docker_event: &DockerEvent, event_message: EventMessage,
             hostname: &str, monitorize: bool) -> Result<String, minijinja::Error>{
         let mut env = Environment::new();
         env.add_filter("datetimeformat", filters::datetimeformat);
         let template = env.template_from_str(&docker_event.message).unwrap();
-        debug!("Event: {:?}", event);
-        debug!("Actor: {:?}", event.actor);
-        let name = match event.actor.attributes.get("name"){
+        debug!("Event: {:?}", event_message);
+        debug!("Actor: {:?}", event_message.actor);
+        let actor = event_message.actor.unwrap();
+        let name = match actor.attributes.unwrap().get("name"){
             Some(name) => name.clone(),
-            None => event.actor.id.clone(),
+            None => actor.id.unwrap().clone(),
         };
         if self.name == "container" && monitorize{
             let ctx = context! {
                 hostname  => hostname.to_string(),
-                timestamp => event.time,
-                id        => event.actor.id.to_string(),
+                timestamp => event_message.time,
+                id        => actor.id.unwrap().to_string(),
                 container => name.to_string(),
-                image     => event.actor.attributes.get("image").unwrap(),
+                image     => actor.attributes.unwrap().get("image").unwrap(),
             };
             template.render(ctx)
         }else if self.name == "network"{
             let ctx = context! {
                 hostname  => hostname.to_string(),
-                timestamp => event.time,
-                id        => event.actor.id.to_string(),
+                timestamp => event_message.time,
+                id        => actor.id.unwrap().to_string(),
                 network   => name.to_string(),
-                type      => event.actor.attributes.get("type").unwrap(),
+                type      => actor.attributes.unwrap().get("type").unwrap(),
             };
             template.render(ctx)
         }else if self.name == "volume"{
             let ctx = context! {
                 hostname  => hostname.to_string(),
-                timestamp => event.time,
-                id        => event.actor.id.to_string(),
+                timestamp => event_message.time,
+                id        => actor.id.unwrap().to_string(),
                 volume    => name.to_string(),
-                driver    => event.actor.attributes.get("driver").unwrap(),
+                driver    => actor.attributes.unwrap().get("driver").unwrap(),
             };
             template.render(ctx)
         }else{

@@ -5,7 +5,7 @@ mod filters;
 mod error;
 
 use futures::StreamExt;
-use shiplift::{Docker, rep::Event};
+use docker_api::{Docker, models::EventMessage, opts::EventsOptsBuilder};
 use tokio::fs;
 use log::{error, debug, info};
 use env_logger::{
@@ -37,10 +37,11 @@ async fn main() {
             .default_filter_or(configuration.get_log_level())).init();
     info!("Configuration loaded");
 
-    let docker = Docker::new();
+    let uri = configuration.get_docker_uri();
+    let docker = Docker::new(uri);
     info!("Start listening for events");
 
-    while let Some(event_result) = docker.events(&Default::default()).next().await {
+    while let Some(event_result) = docker.events(&EventsOptsBuilder::default().build()).next().await {
         match event_result {
             Ok(event) => {
                 process(event, &configuration, &hostname).await;
@@ -51,15 +52,20 @@ async fn main() {
     info!("End listening for events");
 }
 
-async fn process(event: Event, config: &Configuration, hostname: &str){
+async fn process(event: EventMessage, config: &Configuration, hostname: &str){
     debug!("event => {:?}", event);
-    let monitorize = match event.actor.attributes.get("es.atareao.den.monitorize"){
-            Some(value) => value == "true",
-            None => config.is_monitorize_always(),
+    let monitorize = match event
+            .actor
+            .unwrap()
+            .attributes
+            .unwrap()
+            .get("es.atareao.den.monitorize"){
+        Some(value) => value == "true",
+        None => config.is_monitorize_always(),
     };
-    match config.get_object(&event.typ){
+    match config.get_object(&event.type_.unwrap()){
         Some(docker_object) => {
-            match docker_object.get_event(&event.action) {
+            match docker_object.get_event(&event.action.unwrap()) {
                 Some(docker_event) => {
                     match docker_object.parse(&docker_event, event, hostname,
                             monitorize) {
