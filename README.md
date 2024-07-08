@@ -30,8 +30,6 @@ By the moment, only container have this attribute. I think in next version I can
 
 ```bash
 settings:
-  # Log verbosity <debug, info (default), warn, error>
-  logging: debug
   # if `monitorize_always=true` all container are monitorized except has the
   # label `es.atareao.den.monitorize=false`
   # if `monitorize_always=false` only container with the following label
@@ -192,8 +190,6 @@ publishers: ## Available publishers
 If you want to use DEN with Docker Compose, this is an example,
 
 ```bash
-version: "3.7"
-
 services:
   den:
     image: atareao/den:latest
@@ -201,6 +197,8 @@ services:
     init: true
     restart: unless-stopped
     hostname: co1
+    environment:
+        RUST_LOG: debug
     volumes:
       - ./config.yml:/app/config.yml
       - /var/run/docker.sock:/var/run/docker.sock
