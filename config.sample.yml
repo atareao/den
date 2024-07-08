@@ -1,6 +1,4 @@
 settings:
-  # Log verbosity <debug, info (default), warn, error>
-  logging: debug
   # if `monitorize_always=true` all container are monitorized except has the
   # label `es.atareao.den.monitorize=false`
   # if `monitorize_always=false` only container with the following label

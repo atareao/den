@@ -4,7 +4,6 @@ use crate::{publisher::Publisher, object::DockerObject};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
-    pub logging: String,
     pub monitorize_always: bool,
     #[serde(default = "get_default_docker_uri")]
     docker_uri: String,
@@ -37,9 +36,6 @@ impl Configuration {
 impl Configuration {
     pub fn new(content: &str) -> Result<Configuration, Error>{
         serde_yaml::from_str(content)
-    }
-    pub fn get_log_level(&self) -> &str{
-        &self.settings.logging
     }
     pub fn is_monitorize_always(&self) -> bool{
         self.settings.monitorize_always

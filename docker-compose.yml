@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
   den:
     image: atareao/den:latest
@@ -7,6 +5,8 @@ services:
     init: true
     restart: unless-stopped
     hostname: archi
+    environment:
+      RUST_LOG: INFO
     volumes:
       - ./config.yml:/app/config.yml
       - /var/run/docker.sock:/var/run/docker.sock

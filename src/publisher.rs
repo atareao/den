@@ -4,7 +4,7 @@ use reqwest::{Client, Response, header::{HeaderMap, HeaderValue,
     HeaderName}};
 use std::str::FromStr;
 use std::collections::HashMap;
-use log::{error, debug, info};
+use tracing::{error, debug, info};
 use urlencoding::encode;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::time::Duration;

@@ -4,7 +4,7 @@ use minijinja::{
     Environment,
     context,
 };
-use log::debug;
+use tracing::debug;
 use super::filters;
 
 
@@ -36,10 +36,10 @@ impl DockerObject {
         let template = env.template_from_str(&docker_event.message).unwrap();
         debug!("Event: {:?}", event_message);
         debug!("Actor: {:?}", event_message.actor);
-        let actor = event_message.actor.unwrap();
-        let name = match actor.attributes.unwrap().get("name"){
+        let actor = event_message.actor.clone().unwrap();
+        let name = match actor.attributes.clone().unwrap().get("name"){
             Some(name) => name.clone(),
-            None => actor.id.unwrap().clone(),
+            None => actor.id.clone().unwrap().clone(),
         };
         if self.name == "container" && monitorize{
             let ctx = context! {
