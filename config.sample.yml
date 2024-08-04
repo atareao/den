@@ -4,7 +4,7 @@ settings:
   # if `monitorize_always=false` only container with the following label
   # `es.atareao.den.monitorize=true` will be monitorized
   monitorize_always: true
-  docker_uri: /var/run/docker.sock
+  docker_uri: unix:///var/run/docker.sock
 
 objects:
   #  https://docs.docker.com/engine/reference/commandline/events/
