@@ -1,7 +1,7 @@
 ###############################################################################
 ## Builder
 ###############################################################################
-FROM rust:alpine3.23 AS builder
+FROM rust:alpine3.22 AS builder
 
 LABEL maintainer="Lorenzo Carbonell <a.k.a. atareao> lorenzo.carbonell.cerezo@gmail.com"
 
