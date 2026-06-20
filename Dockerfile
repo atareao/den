@@ -26,7 +26,7 @@ RUN cargo build --release && \
 FROM alpine:3.23
 
 RUN apk add --update --no-cache \
-            tzdata~=2025 && \
+            tzdata && \
     rm -rf /var/cache/apk && \
     rm -rf /var/lib/app/lists*
 

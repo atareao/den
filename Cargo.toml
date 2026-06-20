@@ -1,9 +1,13 @@
 [package]
-name = "den"
+name = "docker-events-notifications"
 version = "0.1.4"
 edition = "2021"
+description = "A daemon that listens to Docker events and sends notifications to multiple channels"
+license = "MIT"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "den"
+path = "src/main.rs"
 
 [dependencies]
 tokio = { version = "1.52", features = ["full"]}
