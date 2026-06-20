@@ -1,0 +1,63 @@
+name: Prepare Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: "!startsWith(github.event.head_commit.message, 'chore: release')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.GH_PAT }}
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+      - name: Cache cargo
+        uses: swatinem/rust-cache@v2
+      - name: Install vampus
+        run: cargo install vampus --git https://github.com/atareao/vampus
+      - name: Determine bump type from commits
+        id: bump
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD | head -1)
+          COMMITS=$(git log "$LAST_TAG"..HEAD --format="%s")
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE\|!:"; then
+            echo "type=--major" >> "$GITHUB_OUTPUT"
+          elif echo "$COMMITS" | grep -q "^feat"; then
+            echo "type=--minor" >> "$GITHUB_OUTPUT"
+          else
+            echo "type=--patch" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Bump version with vampus
+        run: vampus upgrade ${{ steps.bump.outputs.type }}
+      - name: Get new version
+        id: version
+        run: |
+          V=$(grep '^current_version' .vampus.yml | sed 's/.*: *//')
+          echo "value=$V" >> "$GITHUB_OUTPUT"
+      - name: Generate changelog
+        run: git-cliff -o CHANGELOG.md --tag "v${{ steps.version.outputs.value }}"
+      - name: Commit, tag and push
+        run: |
+          V="${{ steps.version.outputs.value }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: release v${V}"
+          git tag "v${V}"
+          git push origin main
+          git push origin "v${V}"
+      - name: Sync development with main
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: gh api -X PUT repos/${{ github.repository }}/git/refs/heads/development -f sha=$(git rev-parse HEAD)
