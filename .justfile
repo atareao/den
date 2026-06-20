@@ -1,51 +1,47 @@
 user    := "atareao"
 name    := `basename ${PWD}`
-version  := `vampus show`
-
+version := `vampus show`
 
 build:
-    @docker build \
+    @podman build \
         --tag={{user}}/{{name}}:{{version}} \
         --tag={{user}}/{{name}}:latest .
 
 push:
-    @docker image push --all-tags {{user}}/{{name}}
+    @podman image push --all-tags {{user}}/{{name}}
 
 upgrade:
-    #!/bin/fish
+    #!/usr/bin/env bash
+    set -euo pipefail
     vampus upgrade --patch
-    set VERSION $(vampus show)
+    VERSION=$(vampus show)
     cargo update
     git commit -am "Upgrade to version $VERSION"
     git tag -a "$VERSION" -m "Version $VERSION"
-    # clean old docker images
-    docker image list  | grep {{name}} | sort -r | tail -n +5 | awk '{print $3}' | while read id; echo $id; docker rmi $id; end
+    podman image list | grep {{name}} | sort -r | tail -n +5 | awk '{print $3}' | while read -r id; do echo "$id"; podman rmi "$id"; done
     just build push
 
 buildx:
-    #!/usr/bin/env bash
-    #--platform linux/arm/v7,linux/arm64/v8,linux/amd64 \
-    docker buildx build \
-           --push \
-           --platform linux/arm/v7,linux/arm64/v8,linux/amd64 \
-           --tag {{user}}/{{name}}:{{version}} .
+    @podman build \
+        --platform linux/arm/v7,linux/arm64/v8,linux/amd64 \
+        --tag={{user}}/{{name}}:{{version}} \
+        --tag={{user}}/{{name}}:latest .
+    @podman image push --all-tags {{user}}/{{name}}
 
 run:
-    docker run --rm \
-               --init \
-               --name croni \
-               --init \
-               --env_file croni.env \
-               -v ${PWD}/crontab:/crontab \
-               {{user}}/{{name}}:{{version}}
+    podman run --rm \
+        --init \
+        --name den \
+        --env-file den.env \
+        -v ${PWD}/crontab:/crontab \
+        {{user}}/{{name}}:{{version}}
 
 sh:
-    docker run --rm \
-               -it \
-               --name croni \
-               --init \
-               --env-file croni.env \
-               -v ${PWD}/crontab:/crontab \
-               {{user}}/{{name}}:{{version}} \
-               sh
-
+    podman run --rm \
+        -it \
+        --name den \
+        --init \
+        --env-file den.env \
+        -v ${PWD}/crontab:/crontab \
+        {{user}}/{{name}}:{{version}} \
+        sh
