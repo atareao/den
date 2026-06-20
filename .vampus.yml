@@ -1,0 +1,4 @@
+current_version: 0.1.3
+replaces:
+- file: Cargo.toml
+  pattern: ^version\s*=\s*\"{{current_version}}\"$
