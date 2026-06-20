@@ -199,7 +199,7 @@ impl Publisher{
         let base_url = self.config.get("url").unwrap();
         let now = SystemTime::now();
         let ts = now.duration_since(UNIX_EPOCH).expect("Time went backwrds").as_secs();
-        let url = format!("https://{}/_matrix/client/v3/rooms/{}:{}/send/m.room.message/{}", base_url, room, base_url, ts);
+        let url = format!("https://{}/_matrix/client/v3/rooms/{}/send/m.room.message/{}", base_url, room, ts);
         let mut html = markdown::to_html(message);
         html = html[..html.len()-1].to_string();
         let body = json!({
