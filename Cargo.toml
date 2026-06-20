@@ -1,6 +1,6 @@
 [package]
 name = "docker-events-notifications"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 description = "A daemon that listens to Docker events and sends notifications to multiple channels"
 license = "MIT"
