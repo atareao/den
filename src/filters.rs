@@ -189,3 +189,95 @@ pub fn datetimeformat(state: &State, value: Value, kwargs: Kwargs) -> Result<Str
             Error::new(ErrorKind::InvalidOperation, "failed to format date").with_source(err)
         })
 }
+
+#[cfg(test)]
+mod filters_tests {
+    use super::*;
+    use minijinja::Environment;
+
+    fn setup_env() -> Environment<'static> {
+        let mut env = Environment::new();
+        env.add_filter("datetimeformat", datetimeformat);
+        env
+    }
+
+    #[test]
+    fn datetimeformat_formats_iso() {
+        let env = setup_env();
+        let template = env
+            .template_from_str("{{ 1715000000|datetimeformat(format='iso') }}")
+            .unwrap();
+        let result = template.render(&minijinja::context!()).unwrap();
+        assert_eq!(result, "2024-05-06T12:53:20+00:00");
+    }
+
+    #[test]
+    fn datetimeformat_formats_short() {
+        let env = setup_env();
+        let template = env
+            .template_from_str("{{ 1715000000|datetimeformat(format='short') }}")
+            .unwrap();
+        let result = template.render(&minijinja::context!()).unwrap();
+        assert_eq!(result, "2024-05-06 12:53");
+    }
+
+    #[test]
+    fn datetimeformat_formats_medium() {
+        let env = setup_env();
+        let template = env
+            .template_from_str("{{ 1715000000|datetimeformat(format='medium') }}")
+            .unwrap();
+        let result = template.render(&minijinja::context!()).unwrap();
+        assert_eq!(result, "May 6 2024 12:53");
+    }
+
+    #[test]
+    fn datetimeformat_formats_long() {
+        let env = setup_env();
+        let template = env
+            .template_from_str("{{ 1715000000|datetimeformat(format='long') }}")
+            .unwrap();
+        let result = template.render(&minijinja::context!()).unwrap();
+        assert_eq!(result, "May 6 2024 12:53:20");
+    }
+
+    #[test]
+    fn datetimeformat_formats_unix() {
+        let env = setup_env();
+        let template = env
+            .template_from_str("{{ 1715000000|datetimeformat(format='unix') }}")
+            .unwrap();
+        let result = template.render(&minijinja::context!()).unwrap();
+        assert_eq!(result, "1715000000");
+    }
+
+    #[test]
+    fn datetimeformat_uses_default_format_when_omitted() {
+        let env = setup_env();
+        let template = env
+            .template_from_str("{{ 1715000000|datetimeformat }}")
+            .unwrap();
+        let result = template.render(&minijinja::context!()).unwrap();
+        assert_eq!(result, "May 6 2024 12:53");
+    }
+
+    #[test]
+    fn datetimeformt_handles_custom_format_string() {
+        let env = setup_env();
+        let template = env
+            .template_from_str("{{ 1715000000|datetimeformat(format='[year]-[month]-[day]') }}")
+            .unwrap();
+        let result = template.render(&minijinja::context!()).unwrap();
+        assert_eq!(result, "2024-05-06");
+    }
+
+    #[test]
+    fn datetimeformat_handles_float_timestamp() {
+        let env = setup_env();
+        let template = env
+            .template_from_str("{{ 1715000000.5|datetimeformat(format='unix') }}")
+            .unwrap();
+        let result = template.render(&minijinja::context!()).unwrap();
+        assert_eq!(result, "1715000000");
+    }
+}
